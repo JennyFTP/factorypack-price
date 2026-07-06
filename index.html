@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="data.js"></script>
+<style>
+  html,body{margin:0;padding:0;}
+  *{box-sizing:border-box;}
+  @media print{ .no-print{display:none !important;} body{background:#fff !important;} }
+</style>
+</helmet>
+<div style="min-height:100vh;background:#eceded;font-family:'Pretendard',-apple-system,'Malgun Gothic',sans-serif;padding:36px 22px 90px;--pc1:{{ color1 }};--pc2:{{ color2 }};--grid:{{ gridCols }};">
+  <div style="max-width:1120px;margin:0 auto;">
+
+    <div style="text-align:center;margin-bottom:8px;">
+      <div style="font-size:14px;font-weight:700;letter-spacing:2px;color:#1596F4;">FACTORYPACK · 내부용</div>
+      <div style="font-size:32px;font-weight:800;color:#2c2c2c;margin-top:6px;letter-spacing:-1px;">마스터 단가표</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin:22px 0 30px;">
+      <div class="no-print" style="display:inline-flex;background:#dcdedf;border-radius:999px;padding:5px;gap:4px;">
+        <button type="button" onClick="{{ setF }}" style="{{ btnFStyle }}">마진 20% · 박스단위</button>
+        <button type="button" onClick="{{ setI }}" style="{{ btnIStyle }}">마진 30% · 일반소매가</button>
+        <button type="button" onClick="{{ setB }}" style="{{ btnBStyle }}">둘 다 보기</button>
+      </div>
+      <div style="font-size:14px;font-weight:500;color:#777;">{{ modeNote }} &nbsp;·&nbsp; 부가세 별도 &nbsp;·&nbsp; 원 단위 반올림</div>
+    </div>
+
+    <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="6">
+      <div style="margin-bottom:34px;">
+        <div style="display:flex;align-items:baseline;gap:10px;padding:6px 0 6px 16px;border-left:7px solid #1596F4;margin-bottom:16px;">
+          <span style="font-size:23px;font-weight:800;color:#2c2c2c;letter-spacing:-0.5px;">{{ sec.label }}</span>
+          <span style="font-size:13px;font-weight:600;color:#9a9a9a;">{{ sec.count }}개 품목</span>
+        </div>
+
+        <div style="column-width:352px;column-gap:20px;">
+          <sc-for list="{{ sec.families }}" as="fam" hint-placeholder-count="4">
+            <div style="break-inside:avoid;display:inline-block;width:100%;background:#fff;border-radius:8px;padding:14px 16px 8px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.07);">
+              <div style="font-size:15.5px;font-weight:800;letter-spacing:-0.4px;padding-bottom:9px;border-bottom:2px solid #efefef;margin-bottom:4px;">
+                <span style="color:#1596F4;">{{ fam.blue }}</span><span style="color:#333;">{{ fam.dark }}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:var(--grid);gap:6px;padding:5px 0;font-size:11px;font-weight:700;color:#a2a2a2;letter-spacing:0.2px;">
+                <span>규격</span>
+                <span style="text-align:right;">입수</span>
+                <span style="text-align:right;">{{ head1 }}</span>
+                <sc-if value="{{ showBoth }}" hint-placeholder-val="{{ true }}"><span style="text-align:right;">{{ head2 }}</span></sc-if>
+              </div>
+              <sc-for list="{{ fam.rows }}" as="row" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:var(--grid);gap:6px;padding:6px 0;font-size:13.5px;border-top:1px solid #f2f2f2;align-items:baseline;">
+                  <span style="font-weight:700;color:#3a3a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ row.name }}</span>
+                  <span style="text-align:right;font-weight:600;color:#8a8a8a;">{{ row.qty }}</span>
+                  <span style="text-align:right;font-weight:800;color:var(--pc1);">{{ row.p1 }}</span>
+                  <sc-if value="{{ showBoth }}" hint-placeholder-val="{{ true }}"><span style="text-align:right;font-weight:800;color:var(--pc2);">{{ row.p2 }}</span></sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+
+  </div>
+</div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" rx="18" fill="#2c2c2c"/>
+  <g stroke="#1596F4" stroke-width="5" stroke-linecap="round">
+    <line x1="30" y1="38" x2="70" y2="38"/>
+    <line x1="30" y1="50" x2="70" y2="50"/>
+    <line x1="30" y1="62" x2="58" y2="62"/>
+  </g>
+</svg>
+</template>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1160,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { groups: (typeof window !== 'undefined' && window.BOX_GROUPS) || null, mode: 'F' };
+
+  componentDidMount(){
+    if(!this.state.groups){
+      let tries = 0;
+      const iv = setInterval(()=>{
+        if(window.BOX_GROUPS){ clearInterval(iv); this.setState({groups: window.BOX_GROUPS}); }
+        else if(++tries > 80){ clearInterval(iv); }
+      }, 30);
+    }
+  }
+
+  renderVals(){
+    const raw = this.state.groups || [];
+    const mode = this.state.mode; // 'F' | 'I' | 'B'
+    const both = mode === 'B';
+
+    const SEC_ORDER = ['스탠드지퍼백','삼방지퍼백','삼방','T방','스파우트','앰방'];
+    const bySec = {};
+    raw.forEach(g => { (bySec[g.section] = bySec[g.section] || []).push(g); });
+    const secKeys = Object.keys(bySec).sort((a,b)=>{
+      const ia = SEC_ORDER.indexOf(a), ib = SEC_ORDER.indexOf(b);
+      return (ia<0?99:ia) - (ib<0?99:ib);
+    });
+
+    const r = v => (v == null) ? '—' : Math.round(v).toLocaleString('en-US');
+
+    const sections = secKeys.map(k => {
+      const fams = bySec[k];
+      let count = 0;
+      const families = fams.map(g => {
+        count += g.rows.length;
+        return {
+          blue: g.blue || '',
+          dark: g.dark || g.family,
+          rows: g.rows.map(row => ({
+            name: row.name,
+            qty: row.boxQty != null ? Number(row.boxQty).toLocaleString('en-US') : '-',
+            p1: both ? r(row.rawF) : (mode === 'F' ? r(row.rawF) : r(row.rawI)),
+            p2: r(row.rawI)
+          }))
+        };
+      });
+      return { label: k, count, families };
+    });
+
+    const onBtn = (active, color) =>
+      `border:none;cursor:pointer;font-family:inherit;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:700;letter-spacing:-0.3px;transition:all .15s;` +
+      (active ? `background:${color};color:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.18);` : `background:transparent;color:#7a7a7a;`);
+
+    const note = mode === 'F' ? '마진 20% · 박스단위 장당가격 표시 중'
+               : mode === 'I' ? '마진 30% · 일반 소매가(장당) 표시 중'
+               : '마진 20%(박스단위) + 마진 30%(일반소매가) 동시 표시 · 인쇄/PDF 권장';
+
+    return {
+      sections,
+      color1: mode === 'I' ? '#1596F4' : '#F5443E',
+      color2: '#1596F4',
+      gridCols: both ? 'minmax(0,1fr) 50px 56px 56px' : 'minmax(0,1fr) 58px 62px',
+      showBoth: both,
+      head1: both ? '20%' : (mode === 'F' ? '단가' : '단가'),
+      head2: '30%',
+      modeNote: note,
+      btnFStyle: onBtn(mode==='F', '#F5443E'),
+      btnIStyle: onBtn(mode==='I', '#1596F4'),
+      btnBStyle: onBtn(mode==='B', '#2c2c2c'),
+      setF: () => this.setState({ mode: 'F' }),
+      setI: () => this.setState({ mode: 'I' }),
+      setB: () => this.setState({ mode: 'B' })
+    };
+  }
+}
+</script>
+</body>
+</html>
